@@ -1,0 +1,17 @@
+<!-- app/views/textboxes/result.html.erb -->
+<div class="container mx-auto p-8">
+  <h1 class="text-2xl font-bold mb-6">結果</h1>
+  
+  <div class="bg-gray-100 p-4 rounded-lg">
+    <p class="text-lg mb-2">生成されたテキスト:</p>
+    <div class="bg-white p-3 border rounded">
+      <%= @content %>
+    </div>
+  </div>
+  
+  <div class="mt-4">
+    <a href="<%= textboxes_path %>" class="bg-blue-500 text-white px-4 py-2 rounded inline-block">
+      戻る
+    </a>
+  </div>
+</div>

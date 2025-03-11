@@ -1,0 +1,41 @@
+<!-- app/views/textboxes/index.html.erb -->
+<div class="container mx-auto p-8">
+  <h1 class="text-2xl font-bold mb-6">テキスト入力アプリケーション</h1>
+  
+  <div data-controller="textbox" data-textbox-max-length-value="100">
+    <!-- 文字入力エリア -->
+    <div class="mb-8">
+      <h2 class="text-xl font-semibold mb-3">入力ボックス</h2>
+      <div class="flex flex-wrap items-center min-h-16 bg-gray-50 p-4 rounded" data-textbox-target="charBoxContainer">
+        <!-- 文字ボックスがここに生成されます -->
+      </div>
+      
+      <!-- フォームを送信するボタン -->
+      <div class="mt-4">
+        <button type="button" class="bg-blue-500 text-white px-4 py-2 rounded" data-action="click->textbox#submitForm">
+          送信
+        </button>
+      </div>
+    </div>
+    
+    <!-- ドラッグ可能オブジェクト -->
+    <div class="mt-8">
+      <h2 class="text-xl font-semibold mb-3">ドラッグ可能なオブジェクト</h2>
+      <div class="flex flex-wrap gap-4" data-textbox-target="dragItems">
+        <% @objects.each do |obj| %>
+          <div class="bg-blue-500 text-white p-3 rounded-md cursor-move shadow-md hover:bg-blue-600 transition"
+              data-object-id="<%= obj[:id] %>"
+              data-object-value="<%= obj[:value] %>">
+            オブジェクト <%= obj[:id] %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+    
+    <!-- 次の画面へ渡すための隠しフォーム - data属性を修正 -->
+    <form action="/textboxes/submit" method="post" class="hidden" data-textbox-target="form">
+      <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
+      <input type="hidden" name="content" data-textbox-target="formContent" />
+    </form>
+  </div>
+</div>

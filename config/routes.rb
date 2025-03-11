@@ -1,4 +1,7 @@
 Rails.application.routes.draw do
+  resources :textboxes, only: [ :index ]
+  post "textboxes/submit", to: "textboxes#submit"
+  get "result", to: "textboxes#result", as: :result
   get "home/index"
   devise_for :users
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

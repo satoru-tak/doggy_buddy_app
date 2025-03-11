@@ -42,3 +42,5 @@ module Web
     config.generators.system_tests = nil
   end
 end
+Encoding.default_external = Encoding::UTF_8
+Encoding.default_internal = Encoding::UTF_8

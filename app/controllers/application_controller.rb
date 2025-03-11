@@ -4,6 +4,11 @@ class ApplicationController < ActionController::Base
 
   before_action :configure_permitted_parameters, if: :devise_controller?
 
+  # protect_from_forgery with: :exception
+
+  # # JSON形式のリクエストでCSRFトークンを検証
+  # protect_from_forgery with: :null_session, if: -> { request.format.json? }
+
   protected
 
   def configure_permitted_parameters
