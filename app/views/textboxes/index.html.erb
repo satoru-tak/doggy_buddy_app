@@ -1,11 +1,10 @@
-<!-- app/views/textboxes/index.html.erb -->
 <div class="container mx-auto p-8">
   <h1 class="text-2xl font-bold mb-6">テキスト入力アプリケーション</h1>
   
-  <div data-controller="textbox" data-textbox-max-length-value="100">
+  <div data-controller="textbox" data-textbox-max-length-value="<%= @max_characters %>">
     <!-- 文字入力エリア -->
     <div class="mb-8">
-      <h2 class="text-xl font-semibold mb-3">入力ボックス</h2>
+      <h2 class="text-xl font-semibold mb-3">入力ボックス（最大<%= @max_characters %>文字）</h2>
       <div class="flex flex-wrap items-center min-h-16 bg-gray-50 p-4 rounded" data-textbox-target="charBoxContainer">
         <!-- 文字ボックスがここに生成されます -->
       </div>
@@ -18,22 +17,24 @@
       </div>
     </div>
     
-    <!-- ドラッグ可能オブジェクト -->
+    <!-- 特殊文字ボタン -->
     <div class="mt-8">
-      <h2 class="text-xl font-semibold mb-3">ドラッグ可能なオブジェクト</h2>
-      <div class="flex flex-wrap gap-4" data-textbox-target="dragItems">
+      <h2 class="text-xl font-semibold mb-3">特殊文字</h2>
+      <div class="flex flex-wrap gap-4">
         <% @objects.each do |obj| %>
-          <div class="bg-blue-500 text-white p-3 rounded-md cursor-move shadow-md hover:bg-blue-600 transition"
+          <button type="button"
+              class="bg-blue-500 text-white p-3 rounded-md shadow-md hover:bg-blue-600 transition"
+              data-action="click->textbox#insertObject"
               data-object-id="<%= obj[:id] %>"
               data-object-value="<%= obj[:value] %>">
-            オブジェクト <%= obj[:id] %>
-          </div>
+            <%= obj[:id] %>
+          </button>
         <% end %>
       </div>
     </div>
     
-    <!-- 次の画面へ渡すための隠しフォーム - data属性を修正 -->
-    <form action="/textboxes/submit" method="post" class="hidden" data-textbox-target="form">
+    <!-- 次の画面へ渡すための隠しフォーム -->
+    <form action="/textboxes/submit" method="post" data-textbox-target="form">
       <%= hidden_field_tag :authenticity_token, form_authenticity_token %>
       <input type="hidden" name="content" data-textbox-target="formContent" />
     </form>

@@ -1,32 +1,25 @@
-# app/controllers/textboxes_controller.rb
 class TextboxesController < ApplicationController
-  skip_before_action :verify_authenticity_token, only: [ :submit ] # AJAXリクエスト用
-
   def index
+    # 指輪のサイズや刻印種別に応じて最大文字数を決定
+    @max_characters = 20 # 例: 20文字を最大とする
+
     @objects = [
-      { id: "A", value: "ABC" },
-      { id: "B", value: "DEF" },
-      { id: "C", value: "GHI" },
-      { id: "D", value: "JKL" },
-      { id: "E", value: "MNO" }
+      { id: "内石", value: "誕生石" },
+      { id: "月分", value: "誕生月" },
+      { id: "マ①", value: "マーク1" },
+      { id: "マ②", value: "マーク2" },
+      { id: "マ③", value: "マーク3" },
+      { id: "マ④", value: "マーク4" },
+      { id: "マ⑤", value: "マーク5" }
     ]
   end
 
   def submit
-    # コンテンツを取得（通常のフォーム送信とJSONリクエストの両方に対応）
-    content = params[:content] || JSON.parse(request.body.read)["content"] rescue nil
-
-    # セッションに保存するか、DBに保存するか、必要な処理を行う
-    session[:textbox_content] = content
-
-    respond_to do |format|
-      format.html { redirect_to result_path }
-      format.json { redirect_to result_path }
-    end
+    @content = params[:content]
+    redirect_to result_path(content: @content)
   end
 
   def result
-    @content = session[:textbox_content]
-    # 結果表示ページ
+    @content = params[:content]
   end
 end

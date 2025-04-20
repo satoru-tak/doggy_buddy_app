@@ -1,23 +1,29 @@
 // app/javascript/controllers/textbox_controller.js
 import { Controller } from "@hotwired/stimulus"
-import Sortable from "sortablejs"
 
 export default class extends Controller {
-  static targets = ["charBoxContainer", "dragItems", "form", "formContent"]
-  static values = { maxLength: Number }
+  static targets = ["charBoxContainer", "form", "formContent"]
+  static values = { maxLength: Number } // 最大文字数
   
   connect() {
-    console.log("Textbox controller connected");
-    this.createInitialCharBoxes(10);  // 最初に10個の入力ボックスを表示
-    this.setupDropZone();
-    this.initDraggables();
+    // デフォルトの最大文字数（サーバーから渡されなければ20とする）
+    this.maxLength = this.hasMaxLengthValue ? this.maxLengthValue : 20;
+    
+    // 最大文字数に基づいて入力ボックスを作成
+    this.createFixedCharBoxes(this.maxLength);
+    
+    // 最初のボックスにフォーカス
+    setTimeout(() => {
+      const firstBox = this.getFirstEmptyBox();
+      if (firstBox) firstBox.focus();
+    }, 100);
   }
   
-  createInitialCharBoxes(count) {
+  createFixedCharBoxes(count) {
     const container = this.charBoxContainerTarget;
     container.innerHTML = "";
     
-    // 指定数の入力ボックスを作成
+    // 固定数の入力ボックスを作成
     for (let i = 0; i < count; i++) {
       const charBox = this.createCharBox(i);
       container.appendChild(charBox);
@@ -35,8 +41,20 @@ export default class extends Controller {
     // 入力できるようにする
     charBox.contentEditable = true;
     charBox.classList.add("focus:outline-none", "focus:border-blue-500");
-    charBox.addEventListener("input", (e) => this.handleCharBoxInput(e, position));
-    charBox.addEventListener("keydown", (e) => this.handleKeyDown(e, position));
+    
+    // 入力イベントの処理
+    charBox.addEventListener("input", (e) => this.handleCharBoxInput(e, charBox));
+    charBox.addEventListener("keydown", (e) => this.handleKeyDown(e, charBox));
+    
+    // フォーカス時に適切なボックスに移動
+    charBox.addEventListener("focus", (e) => {
+      // 左から順に埋めるために、フォーカスを適切なボックスに移動
+      const firstEmptyBox = this.getFirstEmptyBox();
+      if (firstEmptyBox && charBox !== firstEmptyBox) {
+        e.preventDefault();
+        firstEmptyBox.focus();
+      }
+    });
     
     return charBox;
   }
@@ -50,136 +68,196 @@ export default class extends Controller {
     objectBox.dataset.type = "object-box";
     objectBox.dataset.objectId = objectId;
     objectBox.dataset.objectValue = objectValue;
-    objectBox.textContent = `${objectId}: ${objectValue}`;
+    
+    // 表示テキストを短く（最大4文字）
+    const displayText = objectId.length > 4 ? objectId.substring(0, 4) : objectId;
+    objectBox.textContent = displayText;
     
     return objectBox;
   }
   
-  handleCharBoxInput(event, position) {
-    const target = event.target;
+  handleCharBoxInput(event, charBox) {
+    // スペースの入力を禁止
+    if (charBox.innerText.includes(' ')) {
+      charBox.innerText = charBox.innerText.replace(/\s+/g, '');
+    }
+    
     // 入力を1文字に制限
-    if (target.innerText.length > 1) {
-      target.innerText = target.innerText.charAt(0);
+    if (charBox.innerText.length > 1) {
+      charBox.innerText = charBox.innerText.charAt(0);
     }
     
     // 入力後に次のボックスにフォーカス
-    if (target.innerText.length === 1) {
-      this.focusNextElement(target);
+    if (charBox.innerText.length === 1) {
+      // 次の空の入力ボックスを取得して自動フォーカス
+      const nextBox = this.findNextEmptyBox();
+      if (nextBox) {
+        setTimeout(() => nextBox.focus(), 0);
+      }
     }
-    
-    // 必要に応じてボックスを追加
-    this.ensureEnoughBoxes();
   }
   
-  handleKeyDown(event, position) {
+  handleKeyDown(event, charBox) {
     // Backspaceキーの処理
-    if (event.key === "Backspace" && event.target.innerText === "") {
+    if (event.key === "Backspace") {
+      // バックスペースが押されたら、常に右端の要素を削除
       event.preventDefault();
-      this.focusPrevElement(event.target);
+      this.deleteRightmostElement();
     }
-  }
-  
-  focusNextElement(element) {
-    const next = element.nextElementSibling;
-    if (next) {
-      next.focus();
-    } else {
-      // 最後のボックスなら新しいボックスを追加
-      const newBox = this.createCharBox(this.getNextPosition());
-      this.charBoxContainerTarget.appendChild(newBox);
-      newBox.focus();
-    }
-  }
-  
-  focusPrevElement(element) {
-    const prev = element.previousElementSibling;
-    if (prev) {
-      // 前の要素がオブジェクトボックスの場合はさらに前へ
-      if (prev.dataset.type === "object-box") {
-        this.focusPrevElement(prev);
-      } else {
-        prev.focus();
-        // カーソルを末尾に
-        this.setEndOfContenteditable(prev);
-      }
-    }
-  }
-  
-  setEndOfContenteditable(element) {
-    const range = document.createRange();
-    const selection = window.getSelection();
-    range.selectNodeContents(element);
-    range.collapse(false);
-    selection.removeAllRanges();
-    selection.addRange(range);
-  }
-  
-  getNextPosition() {
-    const boxes = this.charBoxContainerTarget.children;
-    return boxes.length;
-  }
-  
-  ensureEnoughBoxes() {
-    // 常に少なくとも3つの空の入力ボックスを確保
-    const boxes = Array.from(this.charBoxContainerTarget.children);
-    const emptyBoxes = boxes.filter(box => 
-      box.dataset.type === "char-box" && box.innerText.trim() === ""
-    );
     
-    if (emptyBoxes.length < 3) {
-      for (let i = 0; i < 3 - emptyBoxes.length; i++) {
-        const newBox = this.createCharBox(this.getNextPosition());
-        this.charBoxContainerTarget.appendChild(newBox);
-      }
+    // スペースキーの入力を禁止
+    if (event.key === " " || event.key === "Spacebar") {
+      event.preventDefault();
     }
   }
   
-  setupDropZone() {
-    // コンテナ全体をドロップゾーンとして設定
-    Sortable.create(this.charBoxContainerTarget, {
-      group: {
-        name: 'shared',
-        pull: false,
-        put: true
-      },
-      animation: 150,
-      sort: false,
-      filter: '.object-box', // オブジェクトボックスはソート対象外
-      onAdd: (evt) => {
-        const item = evt.item;
-        const objectId = item.dataset.objectId;
-        const objectValue = item.dataset.objectValue;
-        const index = evt.newIndex;
+  // 一番右端の要素（文字またはオブジェクト）を削除する
+  deleteRightmostElement() {
+    // すべての要素を配列で取得
+    const allElements = Array.from(this.charBoxContainerTarget.children);
+    
+    // 右端から左に向かって順番に検索し、一番右にある有効な要素を見つける
+    for (let i = allElements.length - 1; i >= 0; i--) {
+      const element = allElements[i];
+      
+      // 文字入力ボックスで、内容がある場合
+      if (element.dataset.type === "char-box" && element.innerText.trim() !== "") {
+        // 内容を消去
+        element.innerText = "";
         
-        // オブジェクトボックスを作成
-        const objectBox = this.createObjectBox(objectId, objectValue);
-        
-        // ドロップ位置に挿入
-        if (index < this.charBoxContainerTarget.children.length) {
-          this.charBoxContainerTarget.insertBefore(objectBox, this.charBoxContainerTarget.children[index]);
-        } else {
-          this.charBoxContainerTarget.appendChild(objectBox);
+        // 最初の空ボックスにフォーカス
+        const firstEmptyBox = this.getFirstEmptyBox();
+        if (firstEmptyBox) {
+          firstEmptyBox.focus();
         }
         
-        // ドラッグされたアイテムを削除
-        item.parentNode.removeChild(item);
-        
-        // 十分な入力ボックスを確保
-        this.ensureEnoughBoxes();
+        return; // 削除完了
       }
+      
+      // オブジェクトボックスの場合
+      if (element.dataset.type === "object-box") {
+        // オブジェクトの位置を記録
+        const position = parseInt(element.dataset.position || 0);
+        
+        // オブジェクトを削除
+        element.remove();
+        
+        // 削除したオブジェクトの位置に3つの入力ボックスを追加
+        this.restoreInputBoxes(position, 3);
+        
+        // 最初の空ボックスにフォーカス
+        const firstEmptyBox = this.getFirstEmptyBox();
+        if (firstEmptyBox) {
+          firstEmptyBox.focus();
+        }
+        
+        return; // 削除完了
+      }
+    }
+  }
+  
+  // 指定位置に指定数の入力ボックスを追加
+  restoreInputBoxes(position, count) {
+    const container = this.charBoxContainerTarget;
+    const allBoxes = Array.from(container.children);
+    
+    // 挿入位置の要素
+    const elementAtPosition = allBoxes.find(box => parseInt(box.dataset.position) === position);
+    
+    // 指定数の入力ボックスを作成
+    for (let i = 0; i < count; i++) {
+      const charBox = this.createCharBox(position + i);
+      
+      // 挿入位置が見つかれば、その位置に挿入
+      if (elementAtPosition) {
+        container.insertBefore(charBox, elementAtPosition);
+      } else {
+        // なければ最後に追加
+        container.appendChild(charBox);
+      }
+    }
+    
+    // 位置を再計算
+    this.updateAllPositions();
+  }
+  
+  // すべての要素の位置属性を更新
+  updateAllPositions() {
+    const allElements = Array.from(this.charBoxContainerTarget.children);
+    allElements.forEach((element, index) => {
+      element.dataset.position = index;
     });
   }
   
-  initDraggables() {
-    Sortable.create(this.dragItemsTarget, {
-      group: {
-        name: 'shared',
-        pull: 'clone',
-        put: false
-      },
-      animation: 150,
-      sort: false
-    });
+  // 最初の空のボックスを取得
+  getFirstEmptyBox() {
+    const boxes = Array.from(this.charBoxContainerTarget.children);
+    return boxes.find(box => 
+      box.dataset.type === "char-box" && box.innerText.trim() === ""
+    );
+  }
+  
+  // 次の空の入力ボックスを探す（左から最初の空ボックス）
+  findNextEmptyBox() {
+    return this.getFirstEmptyBox();
+  }
+  
+  // ボタンクリック時のアクション
+  insertObject(event) {
+    const objectId = event.currentTarget.dataset.objectId;
+    const objectValue = event.currentTarget.dataset.objectValue;
+    
+    // 空き入力ボックスが3つ以上あるか確認
+    const emptyBoxes = this.getEmptyBoxes();
+    if (emptyBoxes.length < 3) {
+      alert("空きスペースが足りません。オブジェクトの挿入には3つの空きが必要です。");
+      return;
+    }
+    
+    // 最初の空きボックスの位置を特定
+    const firstEmptyBox = emptyBoxes[0];
+    const insertPosition = parseInt(firstEmptyBox.dataset.position);
+    
+    // 3つの空の入力ボックスを削除
+    for (let i = 0; i < 3; i++) {
+      if (emptyBoxes[i]) {
+        emptyBoxes[i].remove();
+      }
+    }
+    
+    // オブジェクトボックスを作成
+    const objectBox = this.createObjectBox(objectId, objectValue);
+    objectBox.dataset.position = insertPosition;
+    
+    // ドキュメント上の適切な位置にオブジェクトを挿入
+    const container = this.charBoxContainerTarget;
+    const allElements = Array.from(container.children);
+    
+    // 挿入位置より大きい位置の最初の要素を見つける
+    const nextElement = allElements.find(el => parseInt(el.dataset.position) > insertPosition);
+    
+    if (nextElement) {
+      container.insertBefore(objectBox, nextElement);
+    } else {
+      container.appendChild(objectBox);
+    }
+    
+    // 位置属性を更新
+    this.updateAllPositions();
+    
+    // 次の空きボックスにフォーカス
+    const nextEmptyBox = this.getFirstEmptyBox();
+    if (nextEmptyBox) {
+      nextEmptyBox.focus();
+    }
+  }
+  
+  // 空の入力ボックスをすべて取得
+  getEmptyBoxes() {
+    const boxes = Array.from(this.charBoxContainerTarget.children);
+    return boxes.filter(box => 
+      box.dataset.type === "char-box" && box.innerText.trim() === ""
+    );
   }
   
   collectContent() {
@@ -200,50 +278,17 @@ export default class extends Controller {
     return text;
   }
   
-  submitForm(event) {
-    console.log("Submit form clicked");
+  submitForm() {
     try {
       // フォームを送信
       const content = this.collectContent();
-      console.log("Collected content:", content);
+      console.log("送信内容:", content);
       
-      if (this.hasFormContentTarget) {
-        this.formContentTarget.value = content;
-        
-        if (this.hasFormTarget) {
-          console.log("Submitting form...");
-          this.formTarget.submit();
-        } else {
-          console.error("Form target not found");
-          // フォールバック: 直接送信
-          this.submitDirectly(content);
-        }
-      } else {
-        console.error("Form content target not found");
-        // フォールバック: 直接送信
-        this.submitDirectly(content);
-      }
+      this.formContentTarget.value = content;
+      this.formTarget.submit();
     } catch (error) {
-      console.error("Error in submitForm:", error);
-      // フォールバック: 直接送信
-      this.submitDirectly(this.collectContent());
+      console.error("送信エラー:", error);
+      alert("送信中にエラーが発生しました。");
     }
-  }
-  
-  submitDirectly(content) {
-    // フォームがない場合は直接リクエストを送信
-    fetch("/textboxes/submit", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": document.querySelector("meta[name='csrf-token']").content
-      },
-      body: JSON.stringify({ content: content })
-    })
-    .then(response => {
-      if (response.redirected) {
-        window.location.href = response.url;
-      }
-    });
   }
 }

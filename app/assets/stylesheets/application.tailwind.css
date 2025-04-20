@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* app/assets/stylesheets/application.tailwind.css に追加 */
 @layer components {
   .char-box {
     position: relative;
@@ -19,12 +20,7 @@
     transition: all 0.2s;
   }
 
-  .sortable-ghost {
-    opacity: 0.5;
-    background: #e5e7eb;
-  }
-
-  .sortable-drag {
-    opacity: 0.8;
+  .object-box:hover {
+    background-color: rgba(59, 130, 246, 0.2);
   }
 }

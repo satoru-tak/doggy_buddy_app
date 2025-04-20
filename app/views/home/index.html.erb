@@ -1,4 +1,28 @@
-<div>
-  <h1 class="font-bold text-4xl">Home#index</h1>
-  <p>Find me in app/views/home/index.html.erb</p>
+<!-- app/views/home/index.html.erb -->
+<h1>見積書サンプル</h1>
+
+<div style="margin: 20px 0;">
+  <%= link_to "見積書をブラウザで表示", home_generate_pdf_path(format: :pdf), target: "_blank", class: "button" %>
 </div>
+
+<div style="margin: 20px 0;">
+  <%= link_to "見積書をダウンロード", home_download_pdf_path, class: "button" %>
+</div>
+
+<div style="margin: 20px 0;">
+  <%= link_to "シンプルPDFテスト", home_simple_pdf_path, target: "_blank", class: "button" %>
+</div>
+
+<style>
+.button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+.button:hover {
+  background-color: #45a049;
+}
+</style>

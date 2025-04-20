@@ -16,4 +16,7 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   root "home#index"
+  get "home/generate_pdf", to: "home#generate_pdf"
+  get "home/download_pdf", to: "home#download_pdf"
+  get "home/simple_pdf", to: "home#simple_pdf"
 end
