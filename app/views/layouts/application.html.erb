@@ -23,11 +23,25 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5 flex">
-      <p class="notice"><%= notice %></p>
-      <p class="alert"><%= alert %></p>
+  <body class="bg-green-50">
+    <!-- ヘッダー部分を修正 -->
+  <%= render 'shared/header' %>
+
+    <% if notice %>
+      <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
+        <p><%= notice %></p>
+      </div>
+    <% end %>
+    <% if alert %>
+      <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+        <p><%= alert %></p>
+      </div>
+    <% end %>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <%= yield %>
     </main>
+
+    <%= render 'shared/footer' %>
   </body>
 </html>

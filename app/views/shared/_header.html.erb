@@ -1,0 +1,113 @@
+<!-- app/views/shared/_header.html.erb -->
+<header class="bg-white shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16" data-controller="navbar">
+      <!-- ロゴとデスクトップナビゲーション -->
+      <div class="flex items-center">
+        <div class="flex-shrink-0 flex items-center">
+          <%= link_to root_path, class: "flex items-center" do %>
+            <div class="h-10 w-auto flex items-center">
+              <span class="text-green-600 text-2xl font-bold">🐾</span>
+              <span class="ml-1 font-bold text-green-700">Doggy</span>
+              <span class="font-bold text-green-600">Buddy</span>
+              <span class="text-green-600 text-2xl font-bold">🐾</span>
+            </div>
+          <% end %>
+        </div>
+        <nav class="hidden md:ml-6 md:flex md:space-x-8">
+          <%= link_to "シッターを探す", "#", class: "inline-flex items-center px-1 pt-1 text-sm font-medium text-green-700 hover:text-green-900" %>
+          <%= link_to "サービスについて", "#", class: "inline-flex items-center px-1 pt-1 text-sm font-medium text-green-500 hover:text-green-700" %>
+          <%= link_to "よくある質問", "#", class: "inline-flex items-center px-1 pt-1 text-sm font-medium text-green-500 hover:text-green-700" %>
+        </nav>
+      </div>
+
+      <!-- モバイル用メニューボタン -->
+      <div class="flex items-center md:hidden">
+        <button type="button" 
+                class="inline-flex items-center justify-center p-2 rounded-md text-green-600 hover:text-green-900 hover:bg-green-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500" 
+                data-action="navbar#toggleMobileMenu">
+          <span class="sr-only">メニューを開く</span>
+          <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+
+      <!-- デスクトップ用ユーザーメニュー -->
+      <div class="hidden md:flex md:items-center">
+        <% if user_signed_in? %>
+          <div class="flex-shrink-0 relative ml-4">
+            <button type="button" 
+                    class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500" 
+                    data-action="navbar#toggleUserMenu">
+              <%# if current_user.avatar.attached? %>
+                <%#= image_tag current_user.avatar, class: "h-8 w-8 rounded-full" %>
+              <%# else %>
+                <span class="inline-block h-8 w-8 rounded-full overflow-hidden bg-green-100">
+                  <svg class="h-full w-full text-green-300" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </span>
+              <%# end %>
+            </button>
+            <!-- ユーザードロップダウン -->
+            <div data-navbar-target="userMenu" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+              <%= link_to "マイプロフィール", "#", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+              <%= link_to "設定", "#", class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+              <%= link_to "ログアウト", "#", method: :delete, class: "block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" %>
+            </div>
+          </div>
+          <%= link_to "メッセージ", "#", class: "ml-4 px-3 py-2 rounded-md text-sm font-medium text-green-700 hover:bg-green-100" %>
+          <%= link_to "予約管理", "#", class: "ml-2 px-3 py-2 rounded-md text-sm font-medium text-green-700 hover:bg-green-100" %>
+        <% else %>
+          <%= link_to "ログイン", "#", class: "ml-4 px-3 py-2 rounded-md text-sm font-medium text-green-700 hover:bg-green-100" %>
+          <%= link_to "新規登録", "#", class: "ml-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700" %>
+        <% end %>
+      </div>
+
+      <!-- モバイル用メニュー (トグルで表示) -->
+      <div data-navbar-target="mobileMenu" class="hidden absolute inset-x-0 top-16 z-10 md:hidden">
+        <div class="bg-white shadow-lg">
+          <div class="pt-2 pb-3 space-y-1">
+            <%= link_to "シッターを探す", "#", class: "block pl-3 pr-4 py-2 border-l-4 border-green-500 text-base font-medium text-green-700 bg-green-50" %>
+            <%= link_to "サービスについて", "#", class: "block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800" %>
+            <%= link_to "よくある質問", "#", class: "block pl-3 pr-4 py-2 border-l-4 border-transparent text-base font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800" %>
+          </div>
+          <div class="pt-4 pb-3 border-t border-gray-200">
+            <% if user_signed_in? %>
+              <div class="flex items-center px-4">
+                <div class="flex-shrink-0">
+                  <%# if current_user.avatar.attached? %>
+                    <%#= image_tag current_user.avatar, class: "h-10 w-10 rounded-full" %>
+                  <%# else %>
+                    <span class="inline-block h-10 w-10 rounded-full overflow-hidden bg-green-100">
+                      <svg class="h-full w-full text-green-300" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" />
+                      </svg>
+                    </span>
+                  <%# end %>
+                </div>
+                <div class="ml-3">
+                  <div class="text-base font-medium text-gray-800"><%= current_user.name if user_signed_in? %></div>
+                  <div class="text-sm font-medium text-gray-500"><%= current_user.email if user_signed_in? %></div>
+                </div>
+              </div>
+              <div class="mt-3 space-y-1">
+                <%= link_to "マイプロフィール", "#", class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= link_to "メッセージ", "#", class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= link_to "予約管理", "#", class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= link_to "設定", "#", class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= link_to "ログアウト", "#", method: :delete, class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+              </div>
+            <% else %>
+              <div class="mt-3 space-y-1">
+                <%= link_to "ログイン", "#", class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+                <%= link_to "新規登録", "#", class: "block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100" %>
+              </div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
