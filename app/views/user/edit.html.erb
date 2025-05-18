@@ -1,0 +1,9 @@
+<h1>ユーザー編集</h1>
+
+<%= form_with(model: @user) do |f| %>
+  <%= f.text_field :name %>
+  <%= f.text_field :email %>
+
+  <%= f.submit class: "ml-2 px-4 py-2 rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700" %>
+  <%= link_to "キャンセル", user_path(@user), class: "inline-flex ml-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-green-700 bg-white hover:bg-gray-50" %>
+<% end %>
